@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang=zh> 
+<head>
+  <meta charset=utf-8>
+  <meta name="baidu-site-verification" content="code-PUBz4p6d50" />
+  <meta name="msvalidate.01" content="E95E84F34FA795B9B766086AFA806E13">
+  <meta name="keywords" content="GTASA,圣安地列斯,外星都市中文,汉化官网">
+  <meta name="google-site-verification" content="DObmV92tz-8z39nkyi_BLJxU3liSudc6ZL0mX2NF12o" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="viggo">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+<body>
+  <canvas id="magic" width="1267" height="918" style="position: fixed; top: 0px; left: 0px; z-index: -2; opacity: 0.5;"></canvas>
+  <!-- <script src="./script/canvas-magic.js"></script> -->
+  <script type="text/javascript">
+  ! function() {
+      //封装方法，压缩之后减少文件大小
+      function get_attribute(node, attr, default_value) {
+          return node.getAttribute(attr) || default_value;
+      }
+      //封装方法，压缩之后减少文件大小
+      function get_by_tagname(name) {
+          return document.getElementsByTagName(name);
+      }
+      //获取配置参数
+      function get_config_option() {
+          var scripts = get_by_tagname("script"),
+              script_len = scripts.length,
+              script = scripts[script_len - 1]; //当前加载的script
+          return {
+              l: script_len, //长度，用于生成id用
+              z: get_attribute(script, "zIndex", -1), //z-index
+              o: get_attribute(script, "opacity", 0.5), //opacity
+              c: get_attribute(script, "color", "0,72,255"), //color
+              n: get_attribute(script, "count", 99) //count
+          };
+      }
+      //设置canvas的高宽
+      function set_canvas_size() {
+          canvas_width = the_canvas.width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth,
+          canvas_height = the_canvas.height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+      }
+
+      //绘制过程
+      function draw_canvas() {
+          context.clearRect(0, 0, canvas_width, canvas_height);
+          //随机的线条和当前位置联合数组
+          var all_array = [current_point].concat(random_lines);
+          var e, i, d, x_dist, y_dist, dist; //临时节点
+          //遍历处理每一个点
+          random_lines.forEach(function(r) {
+              r.x += r.xa,
+              r.y += r.ya, //移动
+              r.xa *= r.x > canvas_width || r.x < 0 ? -1 : 1,
+              r.ya *= r.y > canvas_height || r.y < 0 ? -1 : 1, //碰到边界，反向反弹
+              context.fillRect(r.x - 0.5, r.y - 0.5, 1, 1); //绘制一个宽高为1的点
+              for (i = 0; i < all_array.length; i++) {
+                  e = all_array[i];
+                  //不是当前点
+                  if (r !== e && null !== e.x && null !== e.y) {
+                          x_dist = r.x - e.x, //x轴距离 l
+                          y_dist = r.y - e.y, //y轴距离 n
+                          dist = x_dist * x_dist + y_dist * y_dist; //总距离, m
+                      dist < e.max && (e === current_point && dist >= e.max / 2 && (r.x -= 0.03 * x_dist, r.y -= 0.03 * y_dist), //靠近的时候加速
+                          d = (e.max - dist) / e.max,
+                          context.beginPath(),
+                          context.lineWidth = d / 2,
+                          context.strokeStyle = "rgba(" + config.c + "," + (d + 0.2) + ")",
+                          context.moveTo(r.x, r.y),
+                          context.lineTo(e.x, e.y),
+                          context.stroke());
+                  }
+              }
+              all_array.splice(all_array.indexOf(r), 1);
+
+          }), frame_func(draw_canvas);
+      }
+      //创建画布，并添加到body中
+      var the_canvas = document.createElement("canvas"), //画布
+          config = get_config_option(), //配置
+          canvas_id = "c_n" + config.l, //canvas id
+          context = the_canvas.getContext("2d"), canvas_width, canvas_height,
+          frame_func = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(func) {
+              window.setTimeout(func, 1000 / 45);
+          }, random = Math.random,
+          current_point = {
+              x: null, //当前鼠标x
+              y: null, //当前鼠标y
+              max: 20000
+          };
+      the_canvas.id = canvas_id;
+      the_canvas.style.cssText = "position:fixed;top:0;left:0;z-index:" + config.z + ";opacity:" + config.o;
+      get_by_tagname("body")[0].appendChild(the_canvas);
+      //初始化画布大小
+
+      set_canvas_size(), window.onresize = set_canvas_size;
+      //当时鼠标位置存储，离开的时候，释放当前位置信息
+      window.onmousemove = function(e) {
+          e = e || window.event, current_point.x = e.clientX, current_point.y = e.clientY;
+      }, window.onmouseout = function() {
+          current_point.x = null, current_point.y = null;
+      };
+      //随机生成config.n条线位置信息
+      for (var random_lines = [], i = 0; config.n > i; i++) {
+          var x = random() * canvas_width, //随机位置
+              y = random() * canvas_height,
+              xa = 2 * random() - 1, //随机运动方向
+              ya = 2 * random() - 1;
+          random_lines.push({
+              x: x,
+              y: y,
+              xa: xa,
+              ya: ya,
+              max: 6000 //沾附距离
+          });
+      }
+      //0.1秒后绘制
+      setTimeout(function() {
+          draw_canvas();
+      }, 100);
+  }();
+
+  </script>
+  <base href="https://GTASA-ACCHS.github.io/">
+  <title>✨外星都市✨ - 💖免费汉化网站🚀 - To be Free ✔</title>
+  <meta name="description" content="GTASA,圣安地列斯,外星都市中文,汉化官网">
+  <link rel=stylesheet href=https://cdn.jsdelivr.net/gh/b9348/url/3/linecons.css>
+  <link rel=stylesheet href=https://cdn.jsdelivr.net/gh/b9348/url/3/font.css>
+  <link rel=stylesheet href=https://cdn.jsdelivr.net/gh/b9348/url/3/concat.css>
+  <link rel=icon href=favicon.ico type=image/x-icon>
+  <script src=https://cdn.bootcdn.net/ajax/libs/jquery/1.11.1/jquery.min.js></script>
+  <style>
+    p,
+    li {
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head> 
+<body class=page-body>
+  <div class=page-container>
+    <div class="sidebar-menu toggle-others fixed">
+      <div class=sidebar-menu-inner>
+        <header class=logo-env>
+          <div class=logo style="text-align: center"><a href=index.html><img src=assets/images/logos/ac.png
+                class=img-circle width=100></a></div><br><br><br><br><br><br>
+				<h2 style="color:rgb(255, 135, 215);"><b>外星都市汉化部</b></h2><h4 style="color:rgb(255, 135, 215);">The Alien City CHS</h4>
+          <div class="mobile-menu-toggle visible-xs"><a href=# data-toggle=user-info-menu><i class=linecons-cog></i></a>
+            <a href=# data-toggle=mobile-menu><b>三</b></a>
+          </div>
+        </header>
+        <ul id=main-menu class=main-menu>
+          <li><a href=.page-body   title=置顶 class=smooth><i
+                class=linecons-star></i> <span class=title>主页</span></a></li>
+          <li><a href=#download  title=汉化获取 class=smooth><i
+                class=linecons-doc></i> <span class=title>汉化获取</span></a></li>
+          <li><a href=#外链 title=外链 class=smooth><i class=linecons-user></i> <span class=title>导航链接</span></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class=main-content>
+      <nav class="navbar user-info-navbar" role=navigation>
+        <ul class="user-info-menu left-links list-inline list-unstyled">
+          <li class="hidden-sm hidden-xs"><a href=# data-toggle=sidebar><b>🌐</b></a></li>
+          <li class="dropdown language-switcher"><a href=# class=dropdown-toggle data-toggle=dropdown
+              style="text-decoration: none;">外星都市汉化</a></li>
+        </ul>
+      </nav>
+      <h1><b style="color:rgb(228, 73, 137);">外星都市汉化正进行中……🚀</b></h1><h4 style="color:rgb(228, 73, 137);">We are coming soon...🚀</h4>
+      <br>
+	  <h4><b style="color:rgb(209, 50, 50);">更新日期</b></h4>
+	  <h4><b>2023</b>年<b>3</b>月<b>26</b>日</h4>
+	  <br>
+      <h4 class=text-gray><i class=linecons-tag style="margin-right: 7px;" id=置顶></i>引言：</h4>
+      <div class=wrapper>
+        <div class=d1>
+          
+        <article>
+          <p style="font-weight: 500;color: rgb(252,175,23);background: rgb(44,46,47);border-radius: 15px;padding:15px ">
+            　　2022年7月，OKami丶鬼道发布了一支关于罪恶都市大型任务包的影片，UP主老寒秋借此契机组织汉化了此mod<br>
+            　　2022年8月，公测版BMP汉化基本完成，开始公测。经历几个月的沧桑，组内的矛盾渐起，汉化组遗憾解散<br>
+            　　汉化发布之初，便有些许有心人士心怀恶意，对虚无汉化组毫无证据的抹黑，刻意歪曲事实真相……在此说明，虚无汉化组从未窃取他人组织成果。<br>
+            　　现在，部分原虚无汉化组成员重新组织起来，对外星都市开始进行了汉化……
+            <a href="#download" style="font-weight: 500;color: rgb(252,175,23); background: rgb(44,46,47)">（下载链接点此）</a>
+          </p>
+
+        </article>
+          <ul class=ul1 style="padding-bottom: 10px;">
+            <li style="padding-bottom: 10px;">
+              <details>
+                <summary style="text-decoration:underline;">👉关于汉化进度问题</summary>“<span
+                  style="font-size: 24px;">现</span>在由于紧缺人手，汉化进度十分缓慢，几周甚至一个月才动一下文本，且程序类问题非常难解决。”
+              </details>
+            </li>
+            <li style="padding-bottom: 10px;">
+              <a rel=nofollow href="javascript:void(0);" onclick="window.open('https://github.com/GTASA-ACCHS/GTASA-Alien-City.CHS-TEXT', '_blank');">👉汉化文本开源链接</a>
+              </li> 
+            <li>
+              <a>👉欲加入汉化组，QQ群：192640503</a>
+            </li>
+          </ul> 
+        </div>
+      </div><br>
+      <div class=d1> 
+        <article>
+          <h2>【补丁介绍】</h2>
+          <ul style="font-weight: 500;">
+            <li>适用于<b style="color:rgb(250, 53, 161);">英文版的外星都市</b>（不要俄语版的，未测试！）</li>
+            <li>安装方法简单，小白操作易上手</li>
+            <li>无名汉化组源码为汉化补丁提供了技术支持</li>
+            <li>可能有些非人类的话语</li>          
+          </ul>
+
+        </article><br>
+
+        <article style="font-weight: 500;background:#ccc;border-radius: 15px;padding:10px ;color:#000">
+          <h2>【制作人员】</h2>
+          <p style="font-weight: 500;color:#ff0000">　　<b>名誉组长：</b>老寒秋</p>
+          <p style="font-weight: 500;color:#ff0000">　　<b>策划：</b>右小天</p>
+          <p style="font-weight: 500;color:#ff0000">　　<b>文本：</b>右小天、Devil、汤米约、元老、宜年、周磊、Lzh10、天骄、无聊的一名网友、随便说一句话都是网名</p>
+          <p style="font-weight: 500;color:#ff0000">　　<b>测试：</b>VercettiSR、土星鸽鸽子、老寒秋、Lzh10、无聊的一名网友、周磊、随便说一句话都是网名</p>
+          <p style="font-weight: 500;color:#ff0000">　　<b>宣传：</b>Lzh10</p>
+          <p style="font-weight: 500;color:#ff0000">　　<b>网站：</b>Lzh10</p>
+        </article>
+
+        <br>
+        <article style="width: 98%;margin:0 auto;border-radius: 15px;padding:10px ;">
+          <h2>【成员感言】</h2>
+          <ul style="font-weight: 500;line-height: 30px;font-weight: 500;">
+            <li style="color:rgb(0, 49, 211);">Lzh10_慕黑：半年归去如梭般，看似流水年华，为报己之梦而奋起直追。哪怕引喻失意！惊鸿一瞥，无畏路上之磨难！终有那日，长虹于我而烂漫！各自走散，粉尘一般分崩；相聚于此，同为追梦之志者！经行此处，梦圆而愚之涕零满面！</li>
+          </ul>
+
+
+
+        </article>
+        <br>
+
+        <article style="color:red;">
+          <h1 style="
+          width: 100%;
+          text-align: center;
+          margin: 0 auto;"><b style="color:red;">【 相 关 声 明 】</b></h2><br>
+          <p style="font-weight: 500;
+          display: flex;
+    justify-content: center;"><b
+              style="color:red;text-align: center;">本汉化补丁仅供交流学习使用，任何组织或个人不得将此用于任何形式的商业目的，对此产生的一切后果由使用者自负，本组将不对此负任何责任。</b></p>
+			  <p style="font-weight: 500;
+          display: flex;
+    justify-content: center;"><b
+              style="color:red;text-align: center;">我组使用「无名汉化组」的程序源码，已得到无名汉化组的许可！ <a href="https://github.com/WMHHZ/VC.SA.Plugin">（跳转至开源链接）</a></b></p>
+
+
+        </article>
+
+        <br>
+        <article style="width: 98%;margin:0 auto;">
+          <h2>【安装方式】</h2>
+          <ul style="font-weight: 500;">
+            <li><b style="color:rgb(255, 0, 0);">打开游戏根目录</b>，将压缩包内的文件<b style="color:rgb(255, 0, 0);">全部复制</b>至<b style="color:rgb(255, 0, 0);">游戏文件夹</b>内，提示替换的<b style="color:rgb(255, 0, 0);">点击替换</b></li>
+            <li>启动游戏。</li>
+          </ul>
+          
+        </article> 
+
+        <article style="margin:0 auto;">
+          <h2>【目前问题】</h2>
+          <ul style="font-weight: 500;">
+            <li>进入存档或开始游戏后，<b style="color:rgb(218, 142, 3);"> ESC-选项-显示设置-高级</b> 点击时崩溃	</li>
+            <li>进入存档或开始游戏后， <b style="color:rgb(218, 142, 3);">ESC-退出游戏-确定</b> 点击时崩溃	</li>
+            <li>（触发方式未知）字符之间空格的字距超级大	</li>
+            <li>删除 根目录 文件夹中的 wm_sachs.asi 或将后缀名改为其他内容即可关闭汉化。</li>
+          </ul>
+
+        </article>
+
+        <br>
+      </div>
+      <h4 id="download" class=text-gray><i class=linecons-tag style="margin-right: 7px;" id=汉化获取></i>汉化获取</h4> 
+      <br>
+      <h4 style="text-decoration: underline;color: black;"><a href=#1 style="background: rgb(252,175,23);border-radius:15px;padding: 15px;color: black;"
+          onclick="window.open('#', 'blank')">👉立即获取</a>
+      </h4><br>
+      <h4 style="text-decoration: underline;color: black;"><a href=#1 style="background: rgb(252,175,23);border-radius:15px;padding: 15px;color: black;"
+          onclick="window.open('#', 'blank')">👉百度网盘</a>
+          <br><br><br>
+          <h4 style="text-decoration: underline;color: black;"><a href=#1 style="background: rgb(252,175,23);border-radius:15px;padding: 15px;color: black;"
+        onclick="window.open('#', 'blank')">👉蓝奏云</a>
+    </h4><br><br>
+
+      <h4 class=text-gray><i class=linecons-tag style="margin-right: 7px;" id=外链></i>导航链接</h4>
+      <div class=row>
+        <div class=col-sm-3>
+          <div class="xe-widget xe-conversations box2 label-info" onclick="window.open('https://www.bing.com', '_blank')"
+            data-toggle=tooltip data-placement=bottom data-original-title=www.bing.com>
+            <div class=xe-comment-entry><a class=xe-user-img>
+                <div class=test
+                  style="width: 40px; height: 40px; float: left; background: url(assets/images/logos/bing.jpg) no-repeat -0px 0px; background-size: 100%; border-radius: 100%; margin-right: 10px;">
+                </div>
+              </a>
+              <div class=xe-comment><a href=# class="xe-user-name overflowClip_1"><strong>必应搜索</strong></a>
+                <p class=overflowClip_2>有什么问题不懂先必应再问</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class=col-sm-3>
+          <div class="xe-widget xe-conversations box2 label-info"
+            onclick="window.open('https://space.bilibili.com/1657432204')" data-toggle=tooltip
+            data-placement=bottom data-original-title=一个热衷汉化的UP主>
+            <div class=xe-comment-entry><a class=xe-user-img>
+                <div class=test
+                  style="width: 40px; height: 40px; float: left; background: url(assets/images/logos/bilibili.jpg) no-repeat -0px 0px; background-size: 100%; border-radius: 100%; margin-right: 10px;">
+                </div>
+              </a>
+              <div class=xe-comment><a href=# class="xe-user-name overflowClip_1"><strong>哔哩哔哩</strong></a>
+                <p class=overflowClip_2>欢迎大家给我三连~</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><br>
+      <footer class="main-footer sticky footer-type-1">
+        <div class=footer-inner>
+          <div class=footer-text>&copy; 2023 <a href="#"><strong>外星都市汉化</strong></a> 建站:<a href="https://pages.github.com/">
+            <strong>GitHub Pages</strong></a>
+          </div>
+          <div class=go-up><a href=# rel=go-top><i class=fa-angle-up></i></a></div>
+        </div>
+      </footer>
+    </div>
+  </div>
+</body>
+<script src=https://cdn.jsdelivr.net/gh/b9348/url/3/concat.js></script>
+<script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?de86b38bbc3dec5ed31c4da285286374";
+    var s = document.getElementsByTagName("script")[0]; 
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+</html>
